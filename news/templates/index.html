@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>News App</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+    <div>
+        {% include 'sidebar.html' %}
+    </div>
+    <div>
+        {% include 'searchbar.html' %}
+    </div>
+    <div class="container" id="articles-container">
+        {% for value in data %}
+        <div class="card mb-3 box" style="max-width: 640px; margin:auto;">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card-body">
+                        <h5 class="card-title"><a href="{{value.url}}" target="_blanck">{{value.title}}</a></h5>
+                        <p class="card-text">{{value.description}}</p>
+                        <p class="card-text"><small class="text-muted">{{value.publishedat}}</small></p>
+                        <form >
+                            <button class="btn btn-primary btn-sm">Bookmark</button>
+                        </form>
+                        <div class="rating">
+                            <i class="rating__star far fa-star"></i>
+                            <i class="rating__star far fa-star"></i>
+                            <i class="rating__star far fa-star"></i>
+                            <i class="rating__star far fa-star"></i>
+                            <i class="rating__star far fa-star"></i>
+                      </div>
+                    </div>
+                  
+                </div>
+            
+                <div class="col-md-4 img-box">
+                    <img src="{{value.image}}" class="card-img" alt="..." height="100%">
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <h1 id="loading">Loading....</h1>
+
+</body>
+<style>
+#articles-container{
+    margin-left: 250px;
+}
+ 
+.rating {
+    width: 180px;
+ }
+ 
+ .rating__star {
+    cursor: pointer;
+    color: #dabd18b2;
+ }
+  
+.box{
+    transition-property: box-shadow, transform;
+    transition-duration: 1s;
+}
+.box:hover{
+    /* box-shadow: 2px 2px 5px #8080807a; */
+    box-shadow: 1px 2px 8px 0px #00bcffb0;
+    transform: translateY(-9px);
+}
+.img-box{
+    padding: 20px;
+}
+.img-box img{
+    border-radius: 15px;
+    object-fit: cover;
+}
+#loading{
+    text-align: center;
+    display: none;
+}
+</style>
+<script>
+
+$(document).ready(function() {
+    console.log( "ready!" );
+    el = document.getElementsByClassName("text-muted")
+    for (i = 0; i < el.length; i++) {
+        t = document.getElementsByClassName("text-muted")[i].innerText
+        var d = new Date(t)
+        document.getElementsByClassName("text-muted")[i].innerText = d.toDateString()
+    }
+});
+var page = 2;
+var window_scroll = true;
+var search = "{{ search }}";
+
+window.addEventListener('scroll', function(e) {
+    // scroll check
+    console.log("scroll check...")
+    if(window_scroll){
+        if((window.innerHeight + window.scrollY) >= (document.body.scrollHeight-200)){
+            window_scroll = false;
+            document.getElementById("loading").style.display = "block";
+            $.ajax({
+                url: '/next?page=' + page + '&search=' + search,
+                dataType: 'json',
+                success: function (data) {
+                    if (data["success"]) {
+                        articles = data["data"]
+                        articles_html = ''
+                        for (i = 0; i < articles.length; i++) {
+                            articles_html += ' \
+                            <div class="card mb-3 box" style="max-width: 640px; margin:auto;">\
+                                <div class="row">\
+                                    <div class="col-md-8">\
+                                        <div class="card-body">\
+                                            <h5 class="card-title"><a href="'+ articles[i]["url"] +'" target="_blanck">'+ articles[i]["title"] +'</a></h5>\
+                                            <p class="card-text">'+ articles[i]["description"] +'</p>\
+                                            <p class="card-text"><small class="text-muted">'+ articles[i]["publishedat"] +'</small></p>\
+                                        </div>\
+                                    </div>\
+                                            \
+                                    <div class="col-md-4 img-box">\
+                                        <img src="'+ articles[i]["image"] +'" class="card-img" alt="..." height="100%">\
+                                    </div>\
+                                </div>\
+                            </div>\
+                            '
+                        }
+                        $("#articles-container").append(articles_html);
+                        page += 1
+                        window_scroll = true;
+                        document.getElementById("loading").style.display = "none";
+                    }
+                    else {
+                        console.log("Failed")
+                        window_scroll = true;
+                        document.getElementById("loading").style.display = "none";
+                    }
+                }
+            });
+        }
+    }
+})
+const ratingStars = [...document.getElementsByClassName("rating__star")];
+
+function executeRating(stars) {
+  const starClassActive = "rating__star fas fa-star";
+  const starClassInactive = "rating__star far fa-star";
+  const starsLength = stars.length;
+  let i;
+  stars.map((star) => {
+    star.onclick = () => {
+      i = stars.indexOf(star);
+
+      if (star.className===starClassInactive) {
+        for (i; i >= 0; --i) stars[i].className = starClassActive;
+      } else {
+        for (i; i < starsLength; ++i) stars[i].className = starClassInactive;
+      }
+    };
+  });
+}
+executeRating(ratingStars);
+
+</script>
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>News for you</title>
+
+    <style>
+        body {
+            margin: 0rem 20rem;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        .header {
+            margin-top: 5px;
+            width: 100%;
+            border-radius: 5px;
+            padding: 10px;
+            background: darkgrey;
+            text-align: center;
+        }
+        .container {
+            margin: 0;
+            padding: 10px;
+        }
+
+
+        .list {
+            margin: 8px 5px;
+            border: 1px solid #111111c9;
+            padding: 10px;
+        }
+    </style>
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
+</head>
+
+<body>
+    <div class="header">
+        <h1><a href="{% url 'home' %}">What's the News?</a></h1>
+    </div>
+
+    <div class="container">
+        {% for title, description, url, author, date in all_news %}
+
+        <div class="list">
+            <a href="{{ url }}">
+                <h4 class="post-title">{{ title }}</h2>
+            </a>
+            <p class="post-subtitle">{{ description }}</p>
+
+            <p>Posted by <a href="#">{{ author }}</a> on {{ date }}</p>
+        </div> -->
+
+        <!-- Divider-->
+
+        <!-- {% endfor %}
+
+    </div>
+</body>
+
+</html> -->
